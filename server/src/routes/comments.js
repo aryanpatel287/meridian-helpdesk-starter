@@ -11,7 +11,7 @@ router.post('/:ticketId/comments', requireAuth, async (req, res, next) => {
     const { body, isInternal } = req.body;
     if (!body) return res.status(400).json({ error: 'body is required' });
 
-    const ticket = await getTicketById(ticketId);
+    const ticket = await getTicketById(ticketId, req.user.orgId);
     if (!ticket) return res.status(404).json({ error: 'Not found' });
     if (ticket.org_id !== req.user.orgId) return res.status(404).json({ error: 'Not found' });
 

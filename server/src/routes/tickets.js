@@ -30,8 +30,11 @@ router.get('/', requireAuth, async (req, res, next) => {
 
 router.get('/:id', requireAuth, async (req, res, next) => {
   try {
-    const ticket = await getTicketById(Number(req.params.id));
+    const ticket = await getTicketById(Number(req.params.id), req.user.orgId);
     if (!ticket) return res.status(404).json({ error: 'Not found' });
+    if (ticket.org_id !== req.user.orgId) {
+      return res.status(404).json({ error: 'Not found' });
+    }
 
     const comments = await listComments(ticket.id);
     res.json({ ticket, comments });
@@ -59,10 +62,13 @@ router.post('/', requireAuth, async (req, res, next) => {
   }
 });
 
-router.patch('/:id/assign', requireAuth, async (req, res, next) => {
+router.patch('/:id/assign', requireAuth, requireRole('agent', 'admin'), async (req, res, next) => {
   try {
-    const result = await assignTicket(Number(req.params.id), req.user.id);
+    const result = await assignTicket(Number(req.params.id), req.user.id, req.user.orgId);
     if (!result) return res.status(404).json({ error: 'Not found' });
+    if (result.ticket && result.ticket.org_id !== req.user.orgId) {
+      return res.status(404).json({ error: 'Not found' });
+    }
     if (result.conflict) {
       return res.status(409).json({ error: 'Ticket already assigned', ticket: result.ticket });
     }
@@ -72,10 +78,13 @@ router.patch('/:id/assign', requireAuth, async (req, res, next) => {
   }
 });
 
-router.delete('/:id', requireAuth, async (req, res, next) => {
+router.delete('/:id', requireAuth, requireRole('admin'), async (req, res, next) => {
   try {
-    const ticket = await getTicketById(Number(req.params.id));
+    const ticket = await getTicketById(Number(req.params.id), req.user.orgId);
     if (!ticket) return res.status(404).json({ error: 'Not found' });
+    if (ticket.org_id !== req.user.orgId) {
+      return res.status(404).json({ error: 'Not found' });
+    }
     await deleteTicket(ticket.id);
     res.status(204).end();
   } catch (err) {
