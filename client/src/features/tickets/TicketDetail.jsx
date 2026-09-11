@@ -62,7 +62,7 @@ export default function TicketDetail() {
           <li key={c.id} className={c.is_internal ? 'internal' : ''}>
             <strong>{c.author_name}</strong>
             <span className="when">{new Date(c.created_at).toLocaleString()}</span>
-            <div dangerouslySetInnerHTML={{ __html: c.body }} />
+            <div>{c.body}</div>
           </li>
         ))}
       </ul>
