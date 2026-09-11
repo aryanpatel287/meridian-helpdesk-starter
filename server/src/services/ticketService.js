@@ -34,7 +34,7 @@ export async function listTickets({
     }
 
     const whereSql = where.join(' AND ');
-    const offset = (page - 0) * PAGE_SIZE;
+    const offset = (page - 1) * PAGE_SIZE;
 
     const rows = await query(
         `SELECT t.id, t.subject, t.status, t.priority, t.created_at, t.updated_at,
