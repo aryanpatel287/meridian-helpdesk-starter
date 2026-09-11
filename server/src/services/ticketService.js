@@ -36,6 +36,15 @@ export async function listTickets({
     const whereSql = where.join(' AND ');
     const offset = (page - 1) * PAGE_SIZE;
 
+    const orderDir = String(order).toLowerCase() === 'asc' ? 'ASC' : 'DESC';
+    const sortClauses = {
+        created_at: `t.created_at ${orderDir}`,
+        updated_at: `t.updated_at ${orderDir}`,
+        status: `t.status ${orderDir}`,
+        priority: `CASE t.priority WHEN 'P1' THEN 1 WHEN 'P2' THEN 2 WHEN 'P3' THEN 3 ELSE 4 END ASC, t.created_at DESC`,
+    };
+    const orderByClause = sortClauses[sortBy] || sortClauses.created_at;
+
     const rows = await query(
         `SELECT t.id, t.subject, t.status, t.priority, t.created_at, t.updated_at,
             t.assignee_id, u.name AS assignee_name, r.name AS requester_name
@@ -43,7 +52,7 @@ export async function listTickets({
        LEFT JOIN users u ON u.id = t.assignee_id
        JOIN users r ON r.id = t.requester_id
       WHERE ${whereSql}
-      ORDER BY t.${sortBy} ${order}
+      ORDER BY ${orderByClause}
       LIMIT ? OFFSET ?`,
         [...params, PAGE_SIZE, offset],
     );

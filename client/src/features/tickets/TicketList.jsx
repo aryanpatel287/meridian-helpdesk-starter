@@ -28,7 +28,7 @@ export default function TicketList() {
       })
       .catch(() => {})
       .finally(() => setLoading(false));
-  }, [page]);
+  }, [page, search, status, priority, sortBy]);
 
   async function handleDelete(id) {
     await api(`/tickets/${id}`, { method: 'DELETE' });
@@ -45,19 +45,40 @@ export default function TicketList() {
         <input
           placeholder="Search subject…"
           value={search}
-          onChange={(e) => setSearch(e.target.value)}
+          onChange={(e) => {
+            setSearch(e.target.value);
+            setPage(1);
+          }}
         />
-        <select value={status} onChange={(e) => setStatus(e.target.value)}>
+        <select
+          value={status}
+          onChange={(e) => {
+            setStatus(e.target.value);
+            setPage(1);
+          }}
+        >
           {STATUSES.map((s) => (
             <option key={s} value={s}>{s || 'Any status'}</option>
           ))}
         </select>
-        <select value={priority} onChange={(e) => setPriority(e.target.value)}>
+        <select
+          value={priority}
+          onChange={(e) => {
+            setPriority(e.target.value);
+            setPage(1);
+          }}
+        >
           {PRIORITIES.map((p) => (
             <option key={p} value={p}>{p || 'Any priority'}</option>
           ))}
         </select>
-        <select value={sortBy} onChange={(e) => setSortBy(e.target.value)}>
+        <select
+          value={sortBy}
+          onChange={(e) => {
+            setSortBy(e.target.value);
+            setPage(1);
+          }}
+        >
           <option value="created_at">Created</option>
           <option value="updated_at">Updated</option>
           <option value="priority">Priority</option>
