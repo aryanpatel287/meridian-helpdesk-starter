@@ -13,6 +13,8 @@ const router = express.Router();
 
 router.get('/', requireAuth, async (req, res, next) => {
   try {
+    const breached = req.query.breached === 'true' ? true : undefined;
+
     const result = await listTickets({
       orgId: req.user.orgId,
       page: Number(req.query.page || 1),
@@ -21,6 +23,7 @@ router.get('/', requireAuth, async (req, res, next) => {
       priority: req.query.priority,
       sortBy: req.query.sortBy || 'created_at',
       order: req.query.order || 'desc',
+      breached,
     });
     res.json(result);
   } catch (err) {

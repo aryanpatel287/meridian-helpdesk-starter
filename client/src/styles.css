@@ -9,7 +9,7 @@ main { max-width: 1100px; margin: 24px auto; padding: 0 20px; }
 table { width:100%; border-collapse:collapse; background:#fff; }
 th, td { text-align:left; padding:8px 10px; border-bottom:1px solid #e6e6ea; font-size:14px; }
 th { background:#000; color:#fff; }
-.filters { display:flex; gap:8px; margin:16px 0; }
+.filters { display:flex; gap:8px; margin:16px 0; flex-wrap:wrap; align-items:center; }
 .filters input, .filters select { padding:6px 8px; border:1px solid #ccc; border-radius:4px; }
 .pager { display:flex; gap:12px; align-items:center; margin-top:16px; font-size:14px; }
 .login { max-width:340px; margin:80px auto; display:flex; flex-direction:column; gap:10px; }
@@ -22,3 +22,4 @@ button:disabled { opacity:.4; cursor:default; }
 .comments li.internal { background:#fffbe6; }
 .comments .when { color:#666; font-size:12px; margin-left:8px; }
 .meta { color:#555; font-size:14px; }
+.badge-breached { background:#d32f2f; color:#fff; border-radius:4px; padding:2px 6px; font-size:0.75rem; font-weight:bold; white-space:nowrap; }
