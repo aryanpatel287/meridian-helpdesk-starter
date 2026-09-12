@@ -13,22 +13,48 @@ export default function TicketList() {
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
   const [status, setStatus] = useState('');
   const [priority, setPriority] = useState('');
   const [sortBy, setSortBy] = useState('created_at');
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(search);
+      setPage(1);
+    }, 400);
+
+    return () => clearTimeout(timer);
+  }, [search]);
+
+  useEffect(() => {
+    let ignore = false;
     setLoading(true);
-    const params = new URLSearchParams({ page, search, status, priority, sortBy, order: 'desc' });
+    const params = new URLSearchParams({
+      page,
+      search: debouncedSearch,
+      status,
+      priority,
+      sortBy,
+      order: 'desc',
+    });
     api(`/tickets?${params.toString()}`)
       .then((data) => {
-        setRows(data.rows);
-        setTotal(data.total);
+        if (!ignore) {
+          setRows(data.rows);
+          setTotal(data.total);
+        }
       })
       .catch(() => {})
-      .finally(() => setLoading(false));
-  }, [page, search, status, priority, sortBy]);
+      .finally(() => {
+        if (!ignore) setLoading(false);
+      });
+
+    return () => {
+      ignore = true;
+    };
+  }, [page, debouncedSearch, status, priority, sortBy]);
 
   async function handleDelete(id) {
     await api(`/tickets/${id}`, { method: 'DELETE' });
@@ -45,10 +71,7 @@ export default function TicketList() {
         <input
           placeholder="Search subject…"
           value={search}
-          onChange={(e) => {
-            setSearch(e.target.value);
-            setPage(1);
-          }}
+          onChange={(e) => setSearch(e.target.value)}
         />
         <select
           value={status}
