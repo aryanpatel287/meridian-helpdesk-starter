@@ -17,6 +17,7 @@ export default function TicketList() {
   const [status, setStatus] = useState('');
   const [priority, setPriority] = useState('');
   const [sortBy, setSortBy] = useState('created_at');
+  const [breached, setBreached] = useState(false);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
@@ -24,13 +25,13 @@ export default function TicketList() {
       setDebouncedSearch(search);
       setPage(1);
     }, 400);
-
     return () => clearTimeout(timer);
   }, [search]);
 
   useEffect(() => {
     let ignore = false;
     setLoading(true);
+
     const params = new URLSearchParams({
       page,
       search: debouncedSearch,
@@ -39,6 +40,8 @@ export default function TicketList() {
       sortBy,
       order: 'desc',
     });
+    if (breached) params.set('breached', 'true');
+
     api(`/tickets?${params.toString()}`)
       .then((data) => {
         if (!ignore) {
@@ -51,10 +54,8 @@ export default function TicketList() {
         if (!ignore) setLoading(false);
       });
 
-    return () => {
-      ignore = true;
-    };
-  }, [page, debouncedSearch, status, priority, sortBy]);
+    return () => { ignore = true; };
+  }, [page, debouncedSearch, status, priority, sortBy, breached]);
 
   async function handleDelete(id) {
     await api(`/tickets/${id}`, { method: 'DELETE' });
@@ -69,53 +70,43 @@ export default function TicketList() {
 
       <div className="filters">
         <input
-          placeholder="Search subject…"
+          placeholder="Search subject..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
         />
-        <select
-          value={status}
-          onChange={(e) => {
-            setStatus(e.target.value);
-            setPage(1);
-          }}
-        >
+        <select value={status} onChange={(e) => { setStatus(e.target.value); setPage(1); }}>
           {STATUSES.map((s) => (
             <option key={s} value={s}>{s || 'Any status'}</option>
           ))}
         </select>
-        <select
-          value={priority}
-          onChange={(e) => {
-            setPriority(e.target.value);
-            setPage(1);
-          }}
-        >
+        <select value={priority} onChange={(e) => { setPriority(e.target.value); setPage(1); }}>
           {PRIORITIES.map((p) => (
             <option key={p} value={p}>{p || 'Any priority'}</option>
           ))}
         </select>
-        <select
-          value={sortBy}
-          onChange={(e) => {
-            setSortBy(e.target.value);
-            setPage(1);
-          }}
-        >
+        <select value={sortBy} onChange={(e) => { setSortBy(e.target.value); setPage(1); }}>
           <option value="created_at">Created</option>
           <option value="updated_at">Updated</option>
           <option value="priority">Priority</option>
           <option value="status">Status</option>
         </select>
+        <label style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '14px' }}>
+          <input
+            type="checkbox"
+            checked={breached}
+            onChange={(e) => { setBreached(e.target.checked); setPage(1); }}
+          />
+          Breached only
+        </label>
       </div>
 
-      {loading && <p>Loading…</p>}
+      {loading && <p>Loading...</p>}
 
       <table>
         <thead>
           <tr>
             <th>#</th><th>Subject</th><th>Status</th><th>Priority</th>
-            <th>Assignee</th><th>Comments</th><th>Created</th><th />
+            <th>Assignee</th><th>Comments</th><th>Created</th><th>SLA</th><th />
           </tr>
         </thead>
         <tbody>
@@ -125,9 +116,14 @@ export default function TicketList() {
               <td><Link to={`/tickets/${t.id}`}>{t.subject}</Link></td>
               <td>{t.status}</td>
               <td>{t.priority}</td>
-              <td>{t.assignee_name || '—'}</td>
+              <td>{t.assignee_name || '-'}</td>
               <td>{t.comment_count}</td>
               <td>{new Date(t.created_at).toLocaleString()}</td>
+              <td>
+                {t.sla_breached && (
+                  <span className="badge-breached">SLA Breached</span>
+                )}
+              </td>
               <td>
                 {user?.role === 'admin' && (
                   <button onClick={() => handleDelete(t.id)}>Delete</button>
@@ -140,7 +136,7 @@ export default function TicketList() {
 
       <div className="pager">
         <button disabled={page <= 1} onClick={() => setPage(page - 1)}>Previous</button>
-        <span>Page {page} of {pageCount || 1} · {total} tickets</span>
+        <span>Page {page} of {pageCount || 1} - {total} tickets</span>
         <button disabled={page >= pageCount} onClick={() => setPage(page + 1)}>Next</button>
       </div>
     </div>

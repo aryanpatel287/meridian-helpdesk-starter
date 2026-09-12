@@ -42,14 +42,19 @@ export default function TicketDetail() {
   }
 
   if (error) return <p className="error">{error}</p>;
-  if (!ticket) return <p>Loading…</p>;
+  if (!ticket) return <p>Loading...</p>;
 
   return (
     <div className="ticket-detail">
       <h1>{ticket.subject}</h1>
       <p className="meta">
-        #{ticket.id} · {ticket.status} · {ticket.priority} ·
+        #{ticket.id} - {ticket.status} - {ticket.priority} -
         requested by {ticket.requester_name} ({ticket.requester_email})
+        {ticket.sla_breached && (
+          <span className="badge-breached" style={{ marginLeft: '8px' }}>
+            SLA Breached
+          </span>
+        )}
       </p>
       <p className="body">{ticket.body}</p>
 
